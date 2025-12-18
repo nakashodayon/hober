@@ -1,181 +1,193 @@
 # Hober
 
-ブラウザ上で選択したテキストをTTS読み上げ・翻訳できるブラウザ拡張機能
+ブラウザ上で選択したテキストを TTS 読み上げ・翻訳できるブラウザ拡張機能
 
 ## 機能
 
-- **TTS読み上げ**: Eleven Labs API (eleven_v3 model) を使用した高品質な音声読み上げ
-- **翻訳**: Gemini 3 Flash Preview を使用したAI翻訳
+- **TTS 読み上げ**: Eleven Labs API を使用した高品質な音声読み上げ
+- **翻訳**: Google Gemini API を使用した AI 翻訳
 - **認証**: Google OAuth またはメール/パスワードによるログイン
-- **サブスクリプション**: Stripe による月額/年額課金
 
 ## 技術スタック
 
 - **拡張機能**: WXT + React + TypeScript
-- **UI**: Coss UI (Tailwind CSS)
+- **UI**: Base UI + Tailwind CSS
 - **バックエンド**: Convex
 - **認証**: Google OAuth (chrome.identity API) + メール/パスワード
-- **決済**: Stripe
 - **TTS**: Eleven Labs API
 - **翻訳**: Google Gemini API
 
 ## セットアップ
 
-### 1. 依存パッケージのインストール
+### 必要条件
+
+- Node.js 18+
+- pnpm
+
+### 1. リポジトリのクローン
+
+```bash
+git clone https://github.com/nakashodayon/hober.git
+cd hober
+```
+
+### 2. 依存パッケージのインストール
 
 ```bash
 pnpm install
 ```
 
-### 2. 環境変数の設定
+### 3. 環境変数の設定
 
-`.env.example` を `.env` にコピーして、Convex の URL を設定:
+`.env.example` を `.env` にコピー:
 
 ```bash
 cp .env.example .env
-# VITE_CONVEX_URL を設定
 ```
 
-### 3. Convex のセットアップ
+`.env` ファイルを編集して `VITE_CONVEX_URL` を設定します（次のステップで取得）。
+
+### 4. Convex のセットアップ
+
+新しい Convex プロジェクトを作成:
 
 ```bash
 npx convex dev --once --configure=new
 ```
 
-### 4. Convex 環境変数の設定
+実行後に表示される URL を `.env` の `VITE_CONVEX_URL` に設定してください。
+
+### 5. Convex 環境変数の設定
+
+Convex ダッシュボードまたはコマンドラインで以下の環境変数を設定:
 
 ```bash
-npx convex env set SITE_URL "https://your-convex-url.convex.site"
-npx convex env set BETTER_AUTH_SECRET "$(openssl rand -base64 32)"
-npx convex env set GOOGLE_CLIENT_ID "your-google-client-id"
-npx convex env set GOOGLE_CLIENT_SECRET "your-google-client-secret"
+# Eleven Labs API キー (https://elevenlabs.io/api)
 npx convex env set ELEVENLABS_API_KEY "your-elevenlabs-api-key"
+
+# Google Gemini API キー (https://aistudio.google.com/apikey)
 npx convex env set GEMINI_API_KEY "your-gemini-api-key"
-npx convex env set STRIPE_SECRET_KEY "sk_test_xxx"
-npx convex env set STRIPE_WEBHOOK_SECRET "whsec_xxx"
-npx convex env set STRIPE_MONTHLY_PRICE_ID "price_xxx"
-npx convex env set STRIPE_YEARLY_PRICE_ID "price_xxx"
 ```
-
-### 5. Stripe の設定
-
-1. Stripe ダッシュボードで Product を作成
-2. 月額 ¥900、年額 ¥8,000 の Price を作成
-3. Webhook を設定 (`/stripe/webhook` エンドポイント)
 
 ### 6. 開発サーバーの起動
 
-```bash
-# WXT 開発サーバー
-pnpm dev
+ターミナル 1: Convex 開発サーバー
 
-# Convex 開発サーバー (別ターミナル)
+```bash
 npx convex dev
 ```
 
-### 7. ビルド
+ターミナル 2: WXT 開発サーバー
+
+```bash
+pnpm dev
+```
+
+### 7. Chrome に拡張機能を読み込む
+
+1. Chrome で `chrome://extensions` を開く
+2. 「デベロッパーモード」を有効化（右上のトグル）
+3. 「パッケージ化されていない拡張機能を読み込む」をクリック
+4. `.output/chrome-mv3-dev` フォルダを選択
+
+## ビルド
+
+### Chrome 用
 
 ```bash
 pnpm build
 ```
 
-ビルド成果物は `.output/chrome-mv3/` に出力されます。
+成果物: `.output/chrome-mv3/`
 
-## 使い方
-
-### Chrome での使い方
-
-1. Chrome で `chrome://extensions` を開く
-2. 「デベロッパーモード」を有効化
-3. 「パッケージ化されていない拡張機能を読み込む」から `.output/chrome-mv3/` を選択
-4. 拡張機能アイコンをクリックしてログイン
-5. サブスクリプションを購入
-6. 任意のウェブページでテキストを選択
-7. 表示されるカードで読み上げ or 翻訳
-
-### Firefox での使い方
-
-Firefox 用にビルドするには:
+### Firefox 用
 
 ```bash
 pnpm build:firefox
 ```
 
-1. Firefox で `about:debugging` を開く
-2. 「このFirefox」をクリック
-3. 「一時的なアドオンを読み込む」をクリック
-4. `.output/firefox-mv2/manifest.json` を選択
-5. 拡張機能アイコンをクリックして**メールアドレス/パスワードでログイン**
-6. サブスクリプションを購入
-7. 任意のウェブページでテキストを選択
-8. 表示されるカードで読み上げ or 翻訳
+成果物: `.output/firefox-mv2/`
 
-### Edge での使い方
+## 使い方
 
-Edge は Chrome と同じ Chromium ベースなので、Chrome 用のビルドがそのまま使えます:
+1. 拡張機能アイコンをクリックしてログイン（Google または メール/パスワード）
+2. 任意のウェブページでテキストを選択
+3. 表示されるカードで読み上げ or 翻訳
 
-1. Edge で `edge://extensions` を開く
-2. 「開発者モード」を有効化
-3. 「展開して読み込み」から `.output/chrome-mv3/` を選択
-4. 拡張機能アイコンをクリックしてログイン
-5. サブスクリプションを購入
-6. 任意のウェブページでテキストを選択
-7. 表示されるカードで読み上げ or 翻訳
+## ブラウザ別の注意事項
 
-### Safari での使い方
+### Chrome / Edge
 
-Safari 用には Xcode を使って変換が必要です:
+- Google OAuth が利用可能
+- メール/パスワード認証も利用可能
+
+### Firefox
 
 ```bash
-# まず Chrome 用にビルド
+pnpm build:firefox
+```
+
+1. `about:debugging` を開く
+2. 「このFirefox」→「一時的なアドオンを読み込む」
+3. `.output/firefox-mv2/manifest.json` を選択
+4. **メール/パスワード認証のみ対応**（`chrome.identity` API 非対応のため）
+
+### Safari
+
+```bash
+# Chrome 用にビルド
 pnpm build
 
-# Safari Web Extension に変換 (macOS のみ)
+# Safari Web Extension に変換 (macOS + Xcode 必要)
 xcrun safari-web-extension-converter .output/chrome-mv3/ --project-location ./safari-extension
 ```
 
-1. Xcode でプロジェクトを開く
-2. ビルドして実行
-3. Safari の設定 > 拡張機能 で有効化
-4. **メールアドレス/パスワードでログイン** (Safari では Google OAuth 非対応)
-5. サブスクリプションを購入して使用
-
-## 認証について
-
-### Google OAuth (Chrome / Edge のみ)
-
-`chrome.identity` API を使用しているため、**Google OAuth は Chrome と Edge でのみ利用可能**です。
-
-### メール/パスワード認証 (全ブラウザ)
-
-Firefox、Safari など `chrome.identity` API が使えないブラウザでは、**メール/パスワード認証**を使用してください。
-
-1. ポップアップで「アカウント作成」をクリック
-2. メールアドレスとパスワード (8文字以上) を入力
-3. 「アカウント作成」ボタンをクリック
-4. 次回以降は「ログイン」でサインイン
+- **メール/パスワード認証のみ対応**
 
 ## ディレクトリ構造
 
 ```
 hober/
 ├── entrypoints/
-│   ├── popup/           # Popup UI
-│   ├── content/         # Content Script (テキスト選択UI)
-│   └── background.ts    # Background Service Worker
-├── components/ui/       # UI コンポーネント
-├── lib/                 # ユーティリティ
-├── convex/              # Convex バックエンド
-│   ├── schema.ts        # DBスキーマ
-│   ├── auth.ts          # 認証設定
-│   ├── http.ts          # HTTP Router
-│   ├── tts.ts           # Eleven Labs API
-│   ├── translate.ts     # Gemini API
-│   ├── stripe.ts        # Stripe 決済
-│   ├── users.ts         # ユーザー管理
-│   └── subscriptions.ts # サブスクリプション管理
-└── public/              # 静的アセット
+│   ├── background.ts        # Background Service Worker
+│   ├── content/             # Content Script (テキスト選択 UI)
+│   │   ├── App.tsx
+│   │   ├── components/
+│   │   ├── hooks/
+│   │   └── icons/
+│   └── popup/               # Popup UI
+│       ├── App.tsx
+│       └── components/
+├── components/ui/           # UI コンポーネント (Base UI)
+├── lib/                     # ユーティリティ
+│   ├── convex.ts            # Convex クライアント
+│   ├── messaging.ts         # 拡張機能メッセージング
+│   ├── storage.ts           # ストレージ管理
+│   └── utils.ts             # ヘルパー関数
+├── convex/                  # Convex バックエンド
+│   ├── schema.ts            # DB スキーマ
+│   ├── auth.ts              # 認証 (Google OAuth + Email/Password)
+│   ├── tts.ts               # Eleven Labs API
+│   ├── translate.ts         # Gemini API
+│   └── users.ts             # ユーザー管理
+├── public/                  # 静的アセット (アイコン等)
+├── wxt.config.ts            # WXT 設定
+└── package.json
 ```
+
+## API キーの取得方法
+
+### Eleven Labs
+
+1. https://elevenlabs.io にアクセス
+2. アカウント作成・ログイン
+3. Profile → API Keys から API キーを取得
+
+### Google Gemini
+
+1. https://aistudio.google.com/apikey にアクセス
+2. Google アカウントでログイン
+3. 「Create API Key」をクリック
 
 ## ライセンス
 
